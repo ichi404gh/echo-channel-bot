@@ -1,0 +1,20 @@
+{
+  "name": "echo-channel-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "body-parser": "^1.19.0",
+    "express": "^4.16.4"
+  },
+  "scripts": {
+    "start": "node ./index.js"
+  },
+  "config": {
+    "token": "367786010:AAFLorY4QtTv6352cVU8f1zPt0",
+    "whitelistIds": [209941872],
+    "channelId": "@tcsdfsf",
+    "host": "https://2b73e7a8.ngrok.io"
+  }
+}
