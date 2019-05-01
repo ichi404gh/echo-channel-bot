@@ -1,43 +1,36 @@
-const express = require('express');
-const axios = require('axios');
-
+const Telegraf = require('telegraf')
 const { config } = require('./package.json');
-
-const url = process.env.HOST || config.host;
+const channelId = config.channelId;
 const token = process.env.token || config.token;
-const channelId = process.env.channelId || config.channelId;
 
+const bot = new Telegraf(token);
 
-const app = express();
-app.use(express.json());
+bot.catch(console.error);
 
-app.post(`/${token}`, async function (req, res) {
-  if (!config.whitelistIds.includes(req.body.message.from.id)) {
-    console.warn("unauthorized access", req.body);
-    res.send('OK');
+function handleForward(ctx) {
+  ctx.telegram.deleteMessage(
+    ctx.update.message.forward_from_chat.id, 
+    ctx.update.message.forward_from_message_id
+  );
+}
+
+bot.start((ctx) => ctx.reply('Welcome!'));
+
+bot.on('message', (ctx) => {
+  if (
+    ctx.update.message.forward_from_chat &&
+    ctx.update.message.forward_from_chat.username == channelId.slice(1)) {
+      handleForward(ctx);
+      return;
+  }
+  console.log(ctx.update);
+  if (!config.whitelistIds.includes(ctx.update.message.from.id)) {
+    ctx.reply("You are not allowed to do this");
     return;
   }
-  try{
-    await sendMessage(req.body.message.text);
-  } catch (e) {
-    console.error(e)
-  }
-  res.send('OK');
+
+  ctx.telegram.sendCopy(config.channelId, ctx.message)
 });
 
-app.listen(3000, function () {
-  console.log('bot listening 3000');
-  setWebhook();
-});
 
-async function setWebhook() {
-  await axios.get(`https://api.telegram.org/bot${token}/setWebhook?url=${url}/${token}`);
-  console.log('webhook was set');
-}
-
-async function sendMessage(text) {
-  await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
-    chat_id: channelId,
-    text
-  });
-}
+bot.launch();
